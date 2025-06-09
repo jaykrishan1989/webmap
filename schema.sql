@@ -1,0 +1,9 @@
+-- schema.sql
+CREATE TABLE IF NOT EXISTS drones (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    model VARCHAR(50) NOT NULL,
+    latitude DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
