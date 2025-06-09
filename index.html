@@ -2,33 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Drone Tracking Dashboard</title>
-  
-  <!-- React & Babel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
-
-  <!-- Leaflet -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
 </head>
-<body class="bg-gray-100">
-  <header class="bg-blue-600 text-white py-4 text-center text-2xl font-bold shadow-md">
-    Drone Tracking Dashboard
-  </header>
-  
+<body>
   <div id="root"></div>
-  
-  <footer class="bg-gray-800 text-white text-center p-4 mt-4">
-    © 2025 DTC-PORTAL | Made with ❤️
-  </footer>
-
   <script type="text/babel">
     const { useState, useEffect } = React;
 
@@ -47,39 +30,185 @@
           }
         };
         fetchDrones();
-        const interval = setInterval(fetchDrones, 2000);
+        const interval = setInterval(fetchDrones, 1000); // Update every 1 second
         return () => clearInterval(interval);
       }, []);
 
-      // Map Setup
-      useEffect(() => {
-        const map = L.map('map').setView([49.1659, -123.9401], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+      // Map and buffer setup
+      const mapRef = React.useRef(null);
+      const markersRef = React.useRef({});
+      const ycdBufferRef = React.useRef(null);
+      const znaBufferRef = React.useRef(null);
+      const heliport1Ref = React.useRef(null);
+      const heliport2Ref = React.useRef(null);
+      const heliport3Ref = React.useRef(null);
+      const cat3BufferRef = React.useRef(null);
 
+      useEffect(() => {
+        if (!mapRef.current) {
+          console.log('Initializing map');
+          mapRef.current = L.map('map').setView([49.1659, -123.9401], 12);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(mapRef.current);
+
+          // Add zoom event listener to toggle buffer visibility
+          mapRef.current.on('zoomend', () => {
+            const currentZoom = mapRef.current.getZoom();
+            console.log('Zoom level:', currentZoom);
+
+            // YCD Buffer (Nanaimo Airport, 1 nm, light red)
+            if (currentZoom >= 11 && !ycdBufferRef.current) {
+              console.log('Adding YCD buffer layer');
+              ycdBufferRef.current = L.circle([49.0545, -123.8701], {
+                color: 'red',
+                fillColor: '#ff0000',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Nanaimo Airport (YCD) 1nm Buffer');
+              ycdBufferRef.current.openPopup();
+            } else if (currentZoom < 11 && ycdBufferRef.current) {
+              console.log('Removing YCD buffer layer');
+              mapRef.current.removeLayer(ycdBufferRef.current);
+              ycdBufferRef.current = null;
+            }
+
+            // ZNA Buffer (Nanaimo Harbour Water Airport, 1 nm, light yellow)
+            if (currentZoom >= 11 && !znaBufferRef.current) {
+              console.log('Adding ZNA buffer layer');
+              znaBufferRef.current = L.circle([49.1659, -123.9401], {
+                color: 'yellow',
+                fillColor: '#ffff99',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Nanaimo Harbour Water Airport (ZNA) 1nm Buffer');
+              znaBufferRef.current.openPopup();
+            } else if (currentZoom < 11 && znaBufferRef.current) {
+              console.log('Removing ZNA buffer layer');
+              mapRef.current.removeLayer(znaBufferRef.current);
+              znaBufferRef.current = null;
+            }
+
+            // Heliport 1 Buffer (Placeholder near Nanaimo Hospital, 1 nm, light yellow)
+            if (currentZoom >= 11 && !heliport1Ref.current) {
+              console.log('Adding Heliport 1 buffer layer');
+              heliport1Ref.current = L.circle([49.1700, -123.9500], {
+                color: 'yellow',
+                fillColor: '#ffff99',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Heliport 1 (Nanaimo Area) 1nm Buffer');
+              heliport1Ref.current.openPopup();
+            } else if (currentZoom < 11 && heliport1Ref.current) {
+              console.log('Removing Heliport 1 buffer layer');
+              mapRef.current.removeLayer(heliport1Ref.current);
+              heliport1Ref.current = null;
+            }
+
+            // Heliport 2 Buffer (Placeholder, offset, 1 nm, light yellow)
+            if (currentZoom >= 11 && !heliport2Ref.current) {
+              console.log('Adding Heliport 2 buffer layer');
+              heliport2Ref.current = L.circle([49.1750, -123.9450], {
+                color: 'yellow',
+                fillColor: '#ffff99',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Heliport 2 (Nanaimo Area) 1nm Buffer');
+              heliport2Ref.current.openPopup();
+            } else if (currentZoom < 11 && heliport2Ref.current) {
+              console.log('Removing Heliport 2 buffer layer');
+              mapRef.current.removeLayer(heliport2Ref.current);
+              heliport2Ref.current = null;
+            }
+
+            // Heliport 3 Buffer (Placeholder, offset, 1 nm, light yellow)
+            if (currentZoom >= 11 && !heliport3Ref.current) {
+              console.log('Adding Heliport 3 buffer layer');
+              heliport3Ref.current = L.circle([49.1600, -123.9550], {
+                color: 'yellow',
+                fillColor: '#ffff99',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Heliport 3 (Nanaimo Area) 1nm Buffer');
+              heliport3Ref.current.openPopup();
+            } else if (currentZoom < 11 && heliport3Ref.current) {
+              console.log('Removing Heliport 3 buffer layer');
+              mapRef.current.removeLayer(heliport3Ref.current);
+              heliport3Ref.current = null;
+            }
+
+            // CAT3 Buffer (Long Lake Water Aerodrome, 1 nm, light yellow)
+            if (currentZoom >= 11 && !cat3BufferRef.current) {
+              console.log('Adding CAT3 buffer layer');
+              cat3BufferRef.current = L.circle([49.2167, -124.0167], {
+                color: 'yellow',
+                fillColor: '#ffff99',
+                fillOpacity: 0.2,
+                radius: 1852 // 1 nm = 1,852 meters
+              })
+                .addTo(mapRef.current)
+                .bindPopup('Long Lake Water Aerodrome (CAT3) 1nm Buffer');
+              cat3BufferRef.current.openPopup();
+            } else if (currentZoom < 11 && cat3BufferRef.current) {
+              console.log('Removing CAT3 buffer layer');
+              mapRef.current.removeLayer(cat3BufferRef.current);
+              cat3BufferRef.current = null;
+            }
+          });
+
+          // Trigger initial zoom check
+          mapRef.current.fire('zoomend');
+        }
+      }, []);
+
+      useEffect(() => {
+        if (!mapRef.current) return;
+        const markers = markersRef.current;
+
+        // Update existing markers and add new ones
         drones.forEach(drone => {
-          L.marker([drone.latitude, drone.longitude])
-            .addTo(map)
-            .bindPopup(`<strong>${drone.name}</strong><br>${drone.model}`);
+          if (markers[drone.id]) {
+            markers[drone.id].setLatLng([drone.latitude, drone.longitude]);
+          } else {
+            const marker = L.marker([drone.latitude, drone.longitude])
+              .addTo(mapRef.current)
+              .bindPopup(
+                `Drone ID: ${drone.id}<br>Name: ${drone.name}<br>Model: ${drone.model}`
+              );
+            markers[drone.id] = marker;
+          }
+        });
+
+        // Remove markers for drones that no longer exist
+        Object.keys(markers).forEach(id => {
+          if (!drones.find(drone => drone.id === Number(id))) {
+            mapRef.current.removeLayer(markers[id]);
+            delete markers[id];
+          }
         });
       }, [drones]);
 
       return (
-        <div className="container mx-auto p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="map" className="h-96 rounded-lg shadow-md"></div>
-            <div className="bg-white p-4 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-2">Active Drones: {drones.length}</h2>
-              <ul className="divide-y divide-gray-200">
-                {drones.map(drone => (
-                  <li key={drone.id} className="py-2 px-4 hover:bg-gray-100">
-                    🚁 <strong>{drone.name}</strong> | {drone.model} <br />
-                    📍 {drone.latitude}, {drone.longitude}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="h-screen p-4">
+          <h1 className="text-2xl font-bold mb-4">Drone Tracking Dashboard</h1>
+          <div id="map" className="h-3/4 w-full border rounded"></div>
+          <div className="mt-4">
+            <h2 className="text-xl">Active Drones: {drones.length}</h2>
+            <ul>
+              {drones.map(drone => (
+                <li key={drone.id}>Drone {drone.id}: ({drone.latitude}, {drone.longitude})</li>
+              ))}
+            </ul>
           </div>
         </div>
       );
