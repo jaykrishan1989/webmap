@@ -20,14 +20,14 @@
     }
     #map {
       position: absolute;
-      top: 8rem; /* space for header + search bar */
+      top: 8rem;
       left: 0;
       width: 100%;
-      height: calc(100vh - 8rem);
+      height: calc(100vh - 12rem); /* adjust for header + search + footer */
     }
   </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
   <!-- Header -->
   <header class="fixed top-0 w-full bg-gray-900 text-white shadow-md z-20">
@@ -46,7 +46,8 @@
   <div class="fixed top-16 w-full bg-white shadow z-10 px-4 py-3">
     <div class="max-w-screen-xl mx-auto flex">
       <input type="text" id="search" placeholder="Enter an address"
-             class="flex-grow p-2 border border-gray-300 rounded-l" />
+             class="flex-grow p-2 border border-gray-300 rounded-l"
+             onkeydown="if(event.key === 'Enter') searchAddress()" />
       <button onclick="searchAddress()"
               class="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700 transition">
         Search
@@ -57,7 +58,14 @@
   <!-- Main Map Container -->
   <div id="root"></div>
 
-  <!-- App Script -->
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white mt-auto relative z-20 text-center py-4">
+    <p class="text-sm">
+      &copy; <span id="year"></span> DroneMark. All rights reserved.
+    </p>
+  </footer>
+
+  <!-- React + Map Script -->
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
@@ -114,14 +122,13 @@
         });
       }, [drones]);
 
-      // Expose mapRef globally so searchAddress() can use it
       window.mapRef = mapRef;
-
       return <div id="map"></div>;
     };
 
     ReactDOM.render(<DroneMap />, document.getElementById("root"));
 
+    // Address Search
     function searchAddress() {
       const address = document.getElementById("search").value;
       if (!address || !window.mapRef.current) return;
@@ -142,6 +149,11 @@
         })
         .catch(err => console.error("Geocoding failed:", err));
     }
+
+    // Auto-set year in footer
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("year").textContent = new Date().getFullYear();
+    });
   </script>
 </body>
 </html>
