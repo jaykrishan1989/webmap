@@ -4,68 +4,33 @@
   <meta charset="UTF-8" />
   <title>DroneMark - Tracking Dashboard</title>
 
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="styles.css">
+
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-
-  <!-- Custom styles -->
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      width: 100%;
-    }
-    #map-container {
-      width: 100%; /* Full width */
-      height: 500px; /* Fixed height */
-      margin-top: 8rem; /* Ensures map starts below the header */
-    }
-    #map {
-      width: 100%;
-      height: 100%;
-    }
-    #search-container {
-      width: 100%;
-      padding: 10px;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      z-index: 10;
-    }
-    footer {
-      width: 100%; /* Full width */
-    }
-  </style>
 </head>
-<body class="bg-gray-100 flex flex-col">
+<body>
 
   <!-- Header (Full Width) -->
-  <header class="fixed top-0 w-full bg-gray-900 text-white shadow-md z-20">
-    <div class="container mx-auto flex justify-between items-center p-4">
-      <h1 class="text-3xl font-bold tracking-wide">DroneMark</h1>
-      <nav class="space-x-4">
-        <a href="#" class="hover:text-gray-300">Home</a>
-        <a href="#" class="hover:text-gray-300">Dashboard</a>
-        <a href="#" class="hover:text-gray-300">Settings</a>
-        <a href="#" class="hover:text-gray-300">Contact</a>
+  <header>
+    <div class="container">
+      <h1>DroneMark - Tracking Dashboard</h1>
+      <nav>
+        <a href="#">Home</a>
+        <a href="#">Dashboard</a>
+        <a href="#">Settings</a>
+        <a href="#">Contact</a>
       </nav>
     </div>
   </header>
 
-  <!-- Search Bar (Full Width) -->
-  <div id="search-container" class="mt-20">
+  <!-- Search Bar -->
+  <div id="search-container">
     <input type="text" id="search" placeholder="Enter an address"
-           class="flex-grow p-2 border border-gray-300 rounded-l"
            onkeydown="if(event.key === 'Enter') searchAddress()" />
-    <button onclick="searchAddress()"
-            class="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700 transition">
-      Search
-    </button>
+    <button onclick="searchAddress()">Search</button>
   </div>
 
   <!-- Map (Full Width) -->
@@ -73,11 +38,9 @@
     <div id="map"></div>
   </div>
 
-  <!-- Footer (Directly Beneath Map, Full Width) -->
-  <footer class="bg-gray-900 text-white text-center py-4">
-    <p class="text-sm">
-      &copy; <span id="year"></span> DroneMark. All rights reserved.
-    </p>
+  <!-- Footer (Directly Beneath Map) -->
+  <footer>
+    <p>&copy; <span id="year"></span> DroneMark. All rights reserved.</p>
   </footer>
 
   <!-- Map Initialization Script -->
@@ -116,5 +79,6 @@
       document.getElementById("year").textContent = new Date().getFullYear();
     });
   </script>
+
 </body>
 </html>
