@@ -16,10 +16,21 @@
     }
     #map {
       position: absolute;
-      top: 4rem;
+      top: 6rem;
       left: 0;
       width: 100%;
-      height: calc(100vh - 4rem);
+      height: calc(100vh - 6rem);
+    }
+    #search-container {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
     }
   </style>
 </head>
@@ -38,6 +49,12 @@
     </div>
   </header>
 
+  <!-- Address Search Bar -->
+  <div id="search-container">
+    <input type="text" id="search" placeholder="Enter an address" class="p-2 w-64 border rounded">
+    <button onclick="searchAddress()" class="ml-2 p-2 bg-blue-600 text-white rounded">Search</button>
+  </div>
+
   <!-- Main Content -->
   <div id="root" class="pt-16"></div>
 
@@ -47,7 +64,6 @@
     const DroneMap = () => {
       const [drones, setDrones] = useState([]);
 
-      // Fetch drone data from backend
       useEffect(() => {
         const fetchDrones = async () => {
           try {
@@ -63,7 +79,6 @@
         return () => clearInterval(interval);
       }, []);
 
-      // Map setup
       const mapRef = React.useRef(null);
       const markersRef = React.useRef({});
 
@@ -80,7 +95,6 @@
         if (!mapRef.current) return;
         const markers = markersRef.current;
 
-        // Update existing markers and add new ones
         drones.forEach(drone => {
           if (markers[drone.id]) {
             markers[drone.id].setLatLng([drone.latitude, drone.longitude]);
@@ -92,7 +106,6 @@
           }
         });
 
-        // Remove old markers
         Object.keys(markers).forEach(id => {
           if (!drones.find(drone => drone.id === Number(id))) {
             mapRef.current.removeLayer(markers[id]);
@@ -109,6 +122,30 @@
     };
 
     ReactDOM.render(<DroneMap />, document.getElementById('root'));
+
+    // Address search function
+    function searchAddress() {
+      const address = document.getElementById('search').value;
+      if (!address) return;
+
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+
+            mapRef.current.setView([lat, lon], 14);
+
+            L.marker([lat, lon]).addTo(mapRef.current)
+              .bindPopup(`📍 ${address}`)
+              .openPopup();
+          } else {
+            alert("Address not found. Try again!");
+          }
+        })
+        .catch(error => console.error("Geocoding error:", error));
+    }
   </script>
 
 </body>
